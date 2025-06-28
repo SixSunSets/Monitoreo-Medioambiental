@@ -1,0 +1,21 @@
+# Servicios necesarios: 1. base de datos, 2. backend y 3. frontend
+services:
+  db:
+    # Descargar la última versión estable de PostgreSQL
+    image: postgres:17
+    # Nombre en el contenedor
+    container_name: postgres_mediciones_ambientales
+    # Variables de entorno para PostgreSQL
+    environment:
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_DB: mediciones_ambientales
+    # Asignar el puerto 5432 del contenedor al puerto 5432 del localhost
+    ports:
+      - "5432:5432"
+    # Volumen para conservar los datos fuera de la misma db incluso
+    volumes:
+      - ./mediciones_ambientales_data:/var/lib/postgresql/data
+    # Reiniciar el contenedor si falla
+    restart: always
+
