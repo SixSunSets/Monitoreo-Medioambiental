@@ -1,0 +1,1 @@
+# Todo lo que hay en app/ forma parte de un mismo paquete
