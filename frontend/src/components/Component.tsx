@@ -644,7 +644,7 @@ export default function Component() {
   const uvColors = ["#43d256", "#fdc12b", "#f97316", "#e9365a", "#a928d4"]
 
   return (
-    <div className={`min-h-screen transition-colors duration-300 ${isDark ? "dark bg-gradient-to-br from-slate-900 via-blue-950 to-indigo-900" : "bg-gradient-to-br from-blue-50 via-white to-green-50"}`}>
+    <div className={`min-h-screen transition-colors duration-300 ${isDark ? "dark bg-gradient-to-r from-slate-900 via-slate-800 to-slate-700" : "bg-gradient-to-br from-blue-50 via-white to-green-50"}`}>
       {/* Header moderno con gradiente */}
       <div className="relative overflow-hidden">
         {/* Fondo degradado: verde en claro, acero oscuro en oscuro */}
