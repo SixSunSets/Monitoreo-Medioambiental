@@ -4,7 +4,18 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 //import { Progress } from "@/components/ui/progress"
-import {Sun, Moon, Thermometer, Droplets, Wind, Zap, TrendingUp, TrendingDown, Minus, Factory, Bubbles} from "lucide-react"
+import {Sun, Moon, Thermometer, Droplets, TrendingUp, TrendingDown, Minus, Bubbles} from "lucide-react"
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  CartesianGrid,
+  ReferenceLine,
+  ResponsiveContainer,
+  Cell
+} from "recharts";
 
 // Datos simulados para los parámetros
 const generateMockData = () => ({
@@ -23,12 +34,13 @@ const generateHistoricalData = () => {
   
   for (let i = 23; i >= 0; i--) {
     const time = new Date(now.getTime() - i * 60 * 60 * 1000)
+    time.setMinutes(0, 0, 0);  // minutos=0, segundos=0, ms=0
     data.push({
       time: time.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }),
-      pm25: Math.random() * 100 + 10,
-      pm10: Math.random() * 200 + 20,
-      ozone: Math.random() * 0.08 + 0.02,
-      uvRadiation: Math.random() * 8 + 1,
+      pm25: Math.random() * 10 + 50,
+      pm10: Math.random() * 20 + 20,
+      ozone: Math.random() * 0.02 + 0.02,
+      uvRadiation: Math.random() * 1 + 3,
     })
   }
   
@@ -317,7 +329,67 @@ const ClimateMiniCard = ({
   )
 }
 
-// Componente para gráfico de barras históricas
+// Definimos la forma personalizada de la barra
+const RoundedBar = (props: any) => {
+  const { x, y, width, height, fill } = props;
+  const radius = 4; // radio superior
+  return (
+    <g>
+      <rect
+        x={x}
+        y={y}
+        width={width}
+        height={height}
+        fill={fill}
+        rx={radius}
+        ry={radius}
+      />
+    </g>
+  );
+};
+
+// Tooltip personalizado para el BarChart
+const CustomBarTooltip = ({
+  active,
+  payload,
+  label,
+  parameter,
+  type,
+  unit,
+  data,
+}: any) => {
+  if (active && payload && payload.length) {
+    const value = payload[0].value;
+    const status = getAirQualityStatus(value, type);
+    const entry = data.find((d: any) => d.time === label);
+    const dateStr = entry?.date ? `${entry.date} ${label}` : label;
+
+    // Formateo de decimales según parámetro
+    let formattedValue = value;
+    if (parameter === "ozone") {
+      formattedValue = value.toFixed(3);
+    } else if (parameter === "uvRadiation") {
+      formattedValue = Math.round(value);
+    } else {
+      formattedValue = value.toFixed(1);
+    }
+
+    return (
+      <div className="rounded-lg shadow-lg px-4 py-3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 min-w-[140px] text-center">
+        <div className="flex items-center justify-center gap-2 mb-1">
+          <span className="inline-block w-3 h-3 rounded-full" style={{ backgroundColor: status.bgColor }} />
+          <span className="font-bold text-lg">{formattedValue}</span>
+          <span className="text-xs">{unit}</span>
+        </div>
+        <div className="text-sm font-medium mb-1" style={{ color: status.bgColor }}>{status.status}</div>
+        <div className="text-xs text-gray-500">{dateStr}</div>
+      </div>
+    );
+  }
+  return null;
+};
+
+// Componente para gráfico de barras histórico
 const HistoricalBarChart = ({
   data,
   parameter,
@@ -326,56 +398,57 @@ const HistoricalBarChart = ({
   max,
   type,
 }: {
-  data: any[]
-  parameter: string
-  title: string
-  unit: string
-  max: number
-  type: string
+  data: any[];
+  parameter: string;
+  title: string;
+  unit: string;
+  max: number;
+  type: string;
 }) => {
-  const maxValue = Math.max(...data.map(d => d[parameter]))
-  const chartHeight = 120
-
   return (
     <Card className="h-full">
       <CardHeader>
         <CardTitle className="text-lg">{title}</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="flex items-end justify-between h-32 gap-1">
-          {data.map((item, index) => {
-            const value = item[parameter]
-            const percentage = (value / max) * 100
-            const height = (value / maxValue) * chartHeight
-            const status = getAirQualityStatus(value, type)
-            
-            return (
-              <div key={index} className="flex flex-col items-center flex-1">
-                <div 
-                  className="w-full rounded-t-sm transition-all duration-300 hover:opacity-80"
-                  style={{ 
-                    height: `${height}px`,
-                    backgroundColor: status.bgColor,
-                    minHeight: '4px'
-                  }}
-                  title={`${item.time}: ${value.toFixed(1)} ${unit}`}
+        <ResponsiveContainer width="100%" height={300}>
+          <BarChart data={data}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="time" />
+            <YAxis domain={[0, max]} />
+            <Tooltip
+              content={({ active, payload, label }) =>
+                <CustomBarTooltip
+                  active={active}
+                  payload={payload}
+                  label={label}
+                  parameter={parameter}
+                  type={type}
+                  unit={unit}
+                  data={data}
                 />
-                {index % 6 === 0 && (
-                  <div className="text-xs text-muted-foreground mt-1 rotate-45 origin-left">
-                    {item.time}
-                  </div>
-                )}
-              </div>
-            )
-          })}
-        </div>
-        <div className="mt-4 text-center text-sm text-muted-foreground">
-          Últimas 24 horas - {unit}
-        </div>
+              }
+            />
+            <Bar
+              dataKey={parameter}
+              shape={<RoundedBar />}
+            >
+              {data.map((entry, index) => {
+                const status = getAirQualityStatus(entry[parameter], type);
+                return (
+                  <Cell
+                    key={`cell-${index}`}
+                    fill={status.bgColor}
+                  />
+                );
+              })}
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
       </CardContent>
     </Card>
-  )
-}
+  );
+};
 
 // Componente para escala de parámetros
 const ParameterScaleCard = ({
@@ -409,6 +482,115 @@ const ParameterScaleCard = ({
                 <div className="text-sm text-muted-foreground">
                   {range.min} - {range.max} {units}
                 </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
+// Componente para tabla de escalas de calidad del aire
+const AirQualityScaleTable = () => {
+  const statuses = [
+    { status: "Excelente", color: "#1ccffe" },
+    { status: "Buena", color: "#43d256" },
+    { status: "Mala", color: "#fdc12b" },
+    { status: "Poco saludable", color: "#e9365a" },
+    { status: "Muy poco saludable", color: "#a928d4" },
+    { status: "Peligrosa", color: "#6a0aff" },
+  ]
+
+  const ranges = {
+    pm25: [6, 12, 35.4, 55.4, 150.4],
+    pm10: [27, 54, 154, 254, 354],
+    ozone: [0.027, 0.054, 0.070, 0.085, 0.105],
+  }
+
+  return (
+    <Card className="h-full">
+      <CardHeader>
+        <CardTitle className="text-xl">Escalas de Calidad del Aire</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b">
+                <th className="text-left py-2 px-3 font-medium text-md">Estado</th>
+                <th className="text-center py-2 px-3 font-medium text-md">PM 2.5 (μg/m³)</th>
+                <th className="text-center py-2 px-3 font-medium text-md">PM 10 (μg/m³)</th>
+                <th className="text-center py-2 px-3 font-medium text-md">Ozono (ppb)</th>
+              </tr>
+            </thead>
+            <tbody>
+              {statuses.map((status, index) => (
+                <tr key={index} className="border-b border-gray-100 dark:border-gray-800">
+                  <td className="py-3 px-3">
+                    <div className="flex items-center gap-2">
+                      <div 
+                        className="w-4 h-4 rounded-full"
+                        style={{ backgroundColor: status.color }}
+                      />
+                      <span className="font-medium text-md" style={{ color: status.color }}>
+                        {status.status}
+                      </span>
+                    </div>
+                  </td>
+                  <td className="text-center py-3 px-3 text-muted-foreground">
+                    {index === 0 ? `0 - ${ranges.pm25[index]}` : 
+                     index === ranges.pm25.length ? `${ranges.pm25[index-1]}+` :
+                     `${ranges.pm25[index-1]} - ${ranges.pm25[index]}`}
+                  </td>
+                  <td className="text-center py-3 px-3 text-muted-foreground">
+                    {index === 0 ? `0 - ${ranges.pm10[index]}` : 
+                     index === ranges.pm10.length ? `${ranges.pm10[index-1]}+` :
+                     `${ranges.pm10[index-1]} - ${ranges.pm10[index]}`}
+                  </td>
+                  <td className="text-center py-3 px-3 text-muted-foreground">
+                    {index === 0 ? `0 - ${ranges.ozone[index]}` : 
+                     index === ranges.ozone.length ? `${ranges.ozone[index-1]}+` :
+                     `${ranges.ozone[index-1]} - ${ranges.ozone[index]}`}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
+// Componente para escala de parámetros UV horizontal
+const UVScaleCard = () => {
+  const uvRanges = [
+    { min: 0, max: 2, status: "Bajo", color: "#43d256" },
+    { min: 2, max: 5, status: "Moderado", color: "#fdc12b" },
+    { min: 5, max: 7, status: "Alto", color: "#f97316" },
+    { min: 7, max: 10, status: "Muy alto", color: "#e9365a" },
+    { min: 10, max: 11, status: "Extremo", color: "#a928d4" },
+  ]
+
+  return (
+    <Card className="h-full">
+      <CardHeader>
+        <CardTitle className="text-lg">Radiación UV</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="flex items-center justify-between gap-4">
+          {uvRanges.map((range, index) => (
+            <div key={index} className="flex flex-col items-center text-center flex-1">
+              <div 
+                className="w-full h-4 rounded-sm mb-2"
+                style={{ backgroundColor: range.color }}
+              />
+              <div className="font-medium text-sm" style={{ color: range.color }}>
+                {range.status}
+              </div>
+              <div className="text-xs text-muted-foreground">
+                {range.min} - {range.max}
               </div>
             </div>
           ))}
@@ -465,7 +647,14 @@ export default function Component() {
     <div className={`min-h-screen transition-colors duration-300 ${isDark ? "dark bg-gray-900" : "bg-gradient-to-br from-blue-50 via-white to-green-50"}`}>
       {/* Header moderno con gradiente */}
       <div className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-green-600 via-green-400 to-green-300 opacity-80"></div>
+        {/* Fondo degradado: verde en claro, acero oscuro en oscuro */}
+        <div
+          className={`
+            absolute inset-0
+            bg-gradient-to-r from-green-600 via-green-400 to-green-300 opacity-80
+            dark:bg-gradient-to-r dark:from-[#232b36] dark:via-[#2c3746] dark:to-[#3a475a] dark:opacity-90
+          `}
+        ></div>
         <div className="absolute inset-0 bg-black/10"></div>
         
         <div className="relative max-w-7xl mx-auto px-6 py-8">
@@ -509,108 +698,98 @@ export default function Component() {
       </div>
 
       {/* Contenido principal */}
-      <div className="max-w-7xl mx-auto px-6 py-8 space-y-6">
+      <div className="max-w-7xl mx-auto px-6 py-4 space-y-6">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="parametros">Parámetros críticos</TabsTrigger>
-            <TabsTrigger value="escalas">Escalas de parámetros</TabsTrigger>
-            <TabsTrigger value="historicos">Niveles históricos</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-3 pb-10">
+            <TabsTrigger value="parametros" className="text-base">Parámetros críticos</TabsTrigger>
+            <TabsTrigger value="escalas" className="text-base">Escalas de parámetros</TabsTrigger>
+            <TabsTrigger value="historicos" className="text-base">Niveles históricos</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="parametros" className="space-y-6">
-            {/* Grid de parámetros - solo los 4 principales */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-              <EnvironmentalCard
-                title="Material particulado 2.5"
-                value={data.pm25}
-                unit="μg/m³"
-                icon={Bubbles}
-                max={150.4}
-                type="pm25"
-              />
+          <div className="h-[calc(100vh-300px)] overflow-y-auto scrollbar-hide">
+            <TabsContent value="parametros" className="space-y-6">
+              {/* Grid de parámetros - solo los 4 principales */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                <EnvironmentalCard
+                  title="Material particulado 2.5"
+                  value={data.pm25}
+                  unit="μg/m³"
+                  icon={Bubbles}
+                  max={150.4}
+                  type="pm25"
+                />
 
-              <EnvironmentalCard
-                title="Material particulado 10"
-                value={data.pm10}
-                unit="μg/m³"
-                icon={Bubbles}
-                max={354}
-                type="pm10"
-              />
+                <EnvironmentalCard
+                  title="Material particulado 10"
+                  value={data.pm10}
+                  unit="μg/m³"
+                  icon={Bubbles}
+                  max={354}
+                  type="pm10"
+                />
 
-              <EnvironmentalCard
-                title="Ozono troposférico"
-                value={data.ozone}
-                unit="ppb"
-                icon={Bubbles}
-                max={0.105}
-                type="ozone"
-              />
+                <EnvironmentalCard
+                  title="Ozono troposférico"
+                  value={data.ozone}
+                  unit="ppb"
+                  icon={Bubbles}
+                  max={0.105}
+                  type="ozone"
+                />
 
-              <EnvironmentalCard
-                title="Índice de radiación UV"
-                value={data.uvRadiation}
-                unit="Índice"
-                icon={Zap}
-                max={11}
-                type="uv"
-              />
-            </div>
-          </TabsContent>
+                <EnvironmentalCard
+                  title="Índice de radiación UV"
+                  value={data.uvRadiation}
+                  unit="Índice"
+                  icon={Sun}
+                  max={11}
+                  type="uv"
+                />
+              </div>
+            </TabsContent>
 
-          <TabsContent value="escalas" className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <ParameterScaleCard
-                title="Calidad del Aire (PM2.5, PM10, Ozono)"
-                ranges={airQualityRanges}
-                colors={airQualityColors}
-                units="μg/m³ / ppb"
-              />
-              <ParameterScaleCard
-                title="Radiación UV"
-                ranges={uvRanges}
-                colors={uvColors}
-                units="Índice"
-              />
-            </div>
-          </TabsContent>
+            <TabsContent value="escalas" className="space-y-6">
+              <AirQualityScaleTable />
+              <UVScaleCard />
+            </TabsContent>
 
-          <TabsContent value="historicos" className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <HistoricalBarChart
-                data={historicalData}
-                parameter="pm25"
-                title="Material particulado 2.5"
-                unit="μg/m³"
-                max={150.4}
-                type="pm25"
-              />
-              <HistoricalBarChart
-                data={historicalData}
-                parameter="pm10"
-                title="Material particulado 10"
-                unit="μg/m³"
-                max={354}
-                type="pm10"
-              />
-              <HistoricalBarChart
-                data={historicalData}
-                parameter="ozone"
-                title="Ozono troposférico"
-                unit="ppb"
-                max={0.105}
-                type="ozone"
-              />
-              <HistoricalBarChart
-                data={historicalData}
-                parameter="uvRadiation"
-                title="Índice de radiación UV"
-                unit="Índice"
-                max={11}
-                type="uv"
-              />
-            </div>
-          </TabsContent>
+            <TabsContent value="historicos" className="space-y-6">
+              <div className="grid grid-cols-1 gap-6">
+                <HistoricalBarChart
+                  data={historicalData}
+                  parameter="pm25"
+                  title="Historial PM 2.5"
+                  unit="μg/m³"
+                  max={150.4}
+                  type="pm25"
+                />
+                <HistoricalBarChart
+                  data={historicalData}
+                  parameter="pm10"
+                  title="Historial PM 10"
+                  unit="μg/m³"
+                  max={354}
+                  type="pm10"
+                />
+                <HistoricalBarChart
+                  data={historicalData}
+                  parameter="ozone"
+                  title="Historial Ozono"
+                  unit="ppb"
+                  max={0.105}
+                  type="ozone"
+                />
+                <HistoricalBarChart
+                  data={historicalData}
+                  parameter="uvRadiation"
+                  title="Historial índice UV"
+                  unit="Índice"
+                  max={11}
+                  type="uv"
+                />
+              </div>
+            </TabsContent>
+          </div>
         </Tabs>
       </div>
     </div>
