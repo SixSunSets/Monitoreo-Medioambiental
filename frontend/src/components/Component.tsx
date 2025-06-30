@@ -19,12 +19,12 @@ import {
 
 // Datos simulados para los parámetros
 const generateMockData = () => ({
-  pm25: 75.2,
-  pm10: 178,
-  ozone: 0.052,
-  uvRadiation: 5,
-  temperature: 40,
-  humidity: 10,
+  pm25: 71,
+  pm10: 43,
+  ozone: 0.02,
+  uvRadiation: 4,
+  temperature: 19,
+  humidity: 77,
 })
 
 // Generar datos históricos de las últimas 24 horas
@@ -197,9 +197,9 @@ const EnvironmentalCard = ({
   const TrendIcon = trend === "up" ? TrendingUp : trend === "down" ? TrendingDown : Minus
 
   return (
-    <Card className="h-full">
+    <Card className="h-full bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border border-gray-200/50 dark:border-slate-700/50">
       <CardHeader className="pb-3">
-        <CardTitle className="flex items-center justify-between text-xl">
+        <CardTitle className="flex items-center justify-between text-xl text-gray-900 dark:text-slate-100">
           <div className="flex items-center gap-2">
             <Icon className="h-6 w-6" />
             <span>{title}</span>
@@ -312,7 +312,7 @@ const ClimateMiniCard = ({
   color: string
 }) => {
   return (
-    <div className="flex items-center gap-3 p-3 rounded-lg bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border border-gray-200/50 dark:border-gray-700/50 shadow-sm">
+    <div className="flex items-center gap-3 p-3 rounded-lg bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border border-gray-200/50 dark:border-slate-700/50 shadow-sm">
       <div 
         className="flex items-center justify-center w-10 h-10 rounded-full"
         style={{ backgroundColor: `${color}15` }}
@@ -320,7 +320,7 @@ const ClimateMiniCard = ({
         <Icon className="w-5 h-5" style={{ color: color }} />
       </div>
       <div className="flex-1 min-w-0">
-        <div className="text-sm font-medium text-gray-600 dark:text-gray-300">{title}</div>
+        <div className="text-sm font-medium text-gray-600 dark:text-slate-300">{title}</div>
         <div className="text-lg font-bold" style={{ color: color }}>
           {value}{unit}
         </div>
@@ -375,14 +375,14 @@ const CustomBarTooltip = ({
     }
 
     return (
-      <div className="rounded-lg shadow-lg px-4 py-3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 min-w-[140px] text-center">
+      <div className="rounded-lg shadow-lg px-4 py-3 bg-white/95 dark:bg-slate-800/95 backdrop-blur-sm border border-gray-200/50 dark:border-slate-700/50 min-w-[140px] text-center">
         <div className="flex items-center justify-center gap-2 mb-1">
           <span className="inline-block w-3 h-3 rounded-full" style={{ backgroundColor: status.bgColor }} />
-          <span className="font-bold text-lg">{formattedValue}</span>
-          <span className="text-xs">{unit}</span>
+          <span className="font-bold text-lg text-gray-900 dark:text-slate-100">{formattedValue}</span>
+          <span className="text-xs text-gray-600 dark:text-slate-300">{unit}</span>
         </div>
         <div className="text-sm font-medium mb-1" style={{ color: status.bgColor }}>{status.status}</div>
-        <div className="text-xs text-gray-500">{dateStr}</div>
+        <div className="text-xs text-gray-500 dark:text-slate-400">{dateStr}</div>
       </div>
     );
   }
@@ -406,16 +406,16 @@ const HistoricalBarChart = ({
   type: string;
 }) => {
   return (
-    <Card className="h-full">
+    <Card className="h-full bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border border-gray-200/50 dark:border-slate-700/50">
       <CardHeader>
-        <CardTitle className="text-lg">{title}</CardTitle>
+        <CardTitle className="text-lg text-gray-900 dark:text-slate-100">{title}</CardTitle>
       </CardHeader>
       <CardContent>
         <ResponsiveContainer width="100%" height={300}>
           <BarChart data={data}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="time" />
-            <YAxis domain={[0, max]} />
+            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" strokeOpacity={0.3} />
+            <XAxis dataKey="time" stroke="#6b7280" strokeOpacity={0.7} />
+            <YAxis domain={[0, max]} stroke="#6b7280" strokeOpacity={0.7} />
             <Tooltip
               content={({ active, payload, label }) =>
                 <CustomBarTooltip
@@ -509,24 +509,24 @@ const AirQualityScaleTable = () => {
   }
 
   return (
-    <Card className="h-full">
+    <Card className="h-full bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border border-gray-200/50 dark:border-slate-700/50">
       <CardHeader>
-        <CardTitle className="text-xl">Escalas de Calidad del Aire</CardTitle>
+        <CardTitle className="text-xl text-gray-900 dark:text-slate-100">Escalas de Calidad del Aire</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="border-b">
-                <th className="text-left py-2 px-3 font-medium text-md">Estado</th>
-                <th className="text-center py-2 px-3 font-medium text-md">PM 2.5 (μg/m³)</th>
-                <th className="text-center py-2 px-3 font-medium text-md">PM 10 (μg/m³)</th>
-                <th className="text-center py-2 px-3 font-medium text-md">Ozono (ppb)</th>
+              <tr className="border-b border-gray-200 dark:border-slate-700">
+                <th className="text-left py-2 px-3 font-medium text-md text-gray-900 dark:text-slate-100">Estado</th>
+                <th className="text-center py-2 px-3 font-medium text-md text-gray-900 dark:text-slate-100">PM 2.5 (μg/m³)</th>
+                <th className="text-center py-2 px-3 font-medium text-md text-gray-900 dark:text-slate-100">PM 10 (μg/m³)</th>
+                <th className="text-center py-2 px-3 font-medium text-md text-gray-900 dark:text-slate-100">Ozono (ppb)</th>
               </tr>
             </thead>
             <tbody>
               {statuses.map((status, index) => (
-                <tr key={index} className="border-b border-gray-100 dark:border-gray-800">
+                <tr key={index} className="border-b border-gray-100 dark:border-slate-700">
                   <td className="py-3 px-3">
                     <div className="flex items-center gap-2">
                       <div 
@@ -538,17 +538,17 @@ const AirQualityScaleTable = () => {
                       </span>
                     </div>
                   </td>
-                  <td className="text-center py-3 px-3 text-muted-foreground">
+                  <td className="text-center py-3 px-3 text-gray-600 dark:text-slate-300">
                     {index === 0 ? `0 - ${ranges.pm25[index]}` : 
                      index === ranges.pm25.length ? `${ranges.pm25[index-1]}+` :
                      `${ranges.pm25[index-1]} - ${ranges.pm25[index]}`}
                   </td>
-                  <td className="text-center py-3 px-3 text-muted-foreground">
+                  <td className="text-center py-3 px-3 text-gray-600 dark:text-slate-300">
                     {index === 0 ? `0 - ${ranges.pm10[index]}` : 
                      index === ranges.pm10.length ? `${ranges.pm10[index-1]}+` :
                      `${ranges.pm10[index-1]} - ${ranges.pm10[index]}`}
                   </td>
-                  <td className="text-center py-3 px-3 text-muted-foreground">
+                  <td className="text-center py-3 px-3 text-gray-600 dark:text-slate-300">
                     {index === 0 ? `0 - ${ranges.ozone[index]}` : 
                      index === ranges.ozone.length ? `${ranges.ozone[index-1]}+` :
                      `${ranges.ozone[index-1]} - ${ranges.ozone[index]}`}
@@ -574,9 +574,9 @@ const UVScaleCard = () => {
   ]
 
   return (
-    <Card className="h-full">
+    <Card className="h-full bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border border-gray-200/50 dark:border-slate-700/50">
       <CardHeader>
-        <CardTitle className="text-lg">Radiación UV</CardTitle>
+        <CardTitle className="text-lg text-gray-900 dark:text-slate-100">Radiación UV</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="flex items-center justify-between gap-4">
@@ -589,7 +589,7 @@ const UVScaleCard = () => {
               <div className="font-medium text-sm" style={{ color: range.color }}>
                 {range.status}
               </div>
-              <div className="text-xs text-muted-foreground">
+              <div className="text-xs text-gray-600 dark:text-slate-300">
                 {range.min} - {range.max}
               </div>
             </div>
@@ -644,7 +644,7 @@ export default function Component() {
   const uvColors = ["#43d256", "#fdc12b", "#f97316", "#e9365a", "#a928d4"]
 
   return (
-    <div className={`min-h-screen transition-colors duration-300 ${isDark ? "dark bg-gray-900" : "bg-gradient-to-br from-blue-50 via-white to-green-50"}`}>
+    <div className={`min-h-screen transition-colors duration-300 ${isDark ? "dark bg-gradient-to-br from-slate-900 via-blue-950 to-indigo-900" : "bg-gradient-to-br from-blue-50 via-white to-green-50"}`}>
       {/* Header moderno con gradiente */}
       <div className="relative overflow-hidden">
         {/* Fondo degradado: verde en claro, acero oscuro en oscuro */}
@@ -652,7 +652,7 @@ export default function Component() {
           className={`
             absolute inset-0
             bg-gradient-to-r from-green-600 via-green-400 to-green-300 opacity-80
-            dark:bg-gradient-to-r dark:from-[#232b36] dark:via-[#2c3746] dark:to-[#3a475a] dark:opacity-90
+            dark:bg-gradient-to-r dark:from-[#1e293b] dark:via-[#334155] dark:to-[#475569] dark:opacity-90
           `}
         ></div>
         <div className="absolute inset-0 bg-black/10"></div>
@@ -700,11 +700,11 @@ export default function Component() {
       {/* Contenido principal */}
       <div className="max-w-7xl mx-auto px-6 py-4 space-y-6">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-3 pb-10">
-            <TabsTrigger value="parametros" className="text-base">Parámetros críticos</TabsTrigger>
-            <TabsTrigger value="escalas" className="text-base">Escalas de parámetros</TabsTrigger>
-            <TabsTrigger value="historicos" className="text-base">Niveles históricos</TabsTrigger>
-          </TabsList>
+          <TabsList className="grid w-full grid-cols-3 pb-10 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border border-gray-200/50 dark:border-slate-700/50">
+            <TabsTrigger value="parametros" className="text-base data-[state=active]:bg-green-500 dark:data-[state=active]:bg-blue-900 data-[state=active]:text-white">Parámetros críticos</TabsTrigger>
+            <TabsTrigger value="escalas" className="text-base data-[state=active]:bg-green-500 dark:data-[state=active]:bg-blue-900 data-[state=active]:text-white">Escalas de parámetros</TabsTrigger>
+            <TabsTrigger value="historicos" className="text-base data-[state=active]:bg-green-500 dark:data-[state=active]:bg-blue-900 data-[state=active]:text-white">Niveles históricos</TabsTrigger>
+          </TabsList> 
 
           <div className="h-[calc(100vh-300px)] overflow-y-auto scrollbar-hide">
             <TabsContent value="parametros" className="space-y-6">
