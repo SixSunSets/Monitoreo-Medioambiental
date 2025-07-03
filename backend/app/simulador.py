@@ -1,6 +1,7 @@
 import random
 import time
 from .db import get_connection
+from .sensores import EstacionMeteorologica
 
 def generar_dato_sintetico():
     """
@@ -27,7 +28,29 @@ def insertar_dato(conn, datos):
 
 def run_simulador(intervalo_segundos=30):
     """
-    Corre el bucle de simulación periódica
+    Corre el bucle de simulación periódica usando la nueva estructura de clases
+    """
+    estacion = EstacionMeteorologica()
+    print(f"[INFO] Estación meteorológica inicializada: {estacion.obtener_estado_estacion()}")
+    
+    try:
+        while True:
+            # Usar la nueva estructura de clases
+            if estacion.guardar_mediciones():
+                mediciones = estacion.obtener_medicion_completa()
+                print(f"[OK] Mediciones guardadas: PM2.5={mediciones[0]}, O3={mediciones[1]}, UV={mediciones[2]}, T={mediciones[3]}°C, H={mediciones[4]}%")
+            else:
+                print("[ERROR] No se pudieron guardar las mediciones")
+            
+            time.sleep(intervalo_segundos)
+    except KeyboardInterrupt:
+        print("Simulador detenido por el usuario.")
+    except Exception as e:
+        print(f"Error en el simulador: {e}")
+
+def run_simulador_legacy(intervalo_segundos=30):
+    """
+    Versión legacy del simulador (método anterior)
     """
     conn = get_connection()
     try:

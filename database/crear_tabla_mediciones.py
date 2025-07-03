@@ -26,8 +26,9 @@ def crear_tabla_mediciones():
             id SERIAL PRIMARY KEY,                    -- Identificador único autoincremental
             fecha_hora TIMESTAMP DEFAULT NOW(),       -- Fecha y hora de la medición (actual por defecto)
             pm25_ugm3 REAL,                           -- Concentración de PM 2.5 en μg/m3
+            pm10_ugm3 REAL,                           -- Concentración de PM 10 en μg/m3
             ozono_ppb REAL,                           -- Concentración de ozono en partes por billón
-            intensidad_uv REAL,                       -- Intensidad UV en mW/cm2
+            indice_uv REAL,                           -- Indice UV (Derivado de la intensidad UV en mW/cm2)
             temperatura REAL,                         -- Temperatura en grados Celsius
             humedad_relativa REAL                     -- Humedad relativa en porcentaje
         );
